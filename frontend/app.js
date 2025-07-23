@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api';
+// const API_URL = 'http://localhost:5000/api';
+const API_URL = 'https://expense-tracker-2b7x.onrender.com/api';
 let expenseChart;
 let currentExpenses = []; // ADD THIS LINE to store expenses for download
 

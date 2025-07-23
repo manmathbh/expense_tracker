@@ -6,7 +6,13 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+// app.use(cors());
+// Replace app.use(cors()); with this:
+const corsOptions = {
+  origin: 'https://graceful-sundae-d41e85.netlify.app', // Your live Netlify URL
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
 app.use(express.json()); // Body parser for JSON
 
 // Connect to MongoDB
