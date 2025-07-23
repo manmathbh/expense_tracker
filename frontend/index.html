@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ADD THESE TWO LINES for PDF Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>Expense Tracker</h1>
+            <button id="logout-btn">Logout</button>
+        </header>
+
+        <main>
+            <div class="form-and-chart">
+                <div class="expense-form-container">
+                    <h2>Add / Edit Expense</h2>
+                    <form id="expense-form">
+                        <input type="hidden" id="expense-id">
+                        <input type="text" id="category" placeholder="Category (e.g., Food, Rent)" required>
+                        <input type="number" id="amount" placeholder="Amount" step="0.01" required>
+                        <textarea id="comments" placeholder="Comments (Optional)"></textarea>
+                        <button type="submit" id="submit-btn">Add Expense</button>
+                    </form>
+                </div>
+                <div class="chart-container">
+                    <h2>Expenses by Category</h2>
+                    <canvas id="expense-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="expense-table-container">
+                <!-- ADD THIS WRAPPER for the header and buttons -->
+                <div class="table-header">
+                    <h2>Your Expenses</h2>
+                    <div class="download-buttons">
+                        <button id="download-csv-btn">Export CSV</button>
+                        <button id="download-pdf-btn">Export PDF</button>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Created At</th>
+                            <th>Updated At</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expense-table-body">
+                        <!-- Expense rows will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
