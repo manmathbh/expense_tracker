@@ -107,8 +107,8 @@ Make sure you have Node.js and MongoDB installed on your system.
 
 ## ## Connect
 
-Manmath - [LinkedIn](https://www.linkedin.com/in/mnmth/) - mnmth133@gmail.com
+Manmath - [LinkedIn](https://www.linkedin.com/in/mnmth/) - [Gmail](mnmth133@gmail.com)
 
-Project Link: [Project Repo][(https://github.com/manmathbh/expense_tracker)
+Project Link: [Project Repo](https://github.com/manmathbh/expense_tracker)
 
 ---
