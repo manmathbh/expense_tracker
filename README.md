@@ -1,3 +1,5 @@
+<!-- OM NAMAH SHIVAY -->
+
 # Expense Tracker 💸
 
 <div align="center">
@@ -107,6 +109,6 @@ Make sure you have Node.js and MongoDB installed on your system.
 
 Manmath - [LinkedIn](https://www.linkedin.com/in/mnmth/) - mnmth133@gmail.com
 
-Project Link: [https://github.com/manmathbh/expense-tracker](https://github.com/manmathbh/expense-tracker)
+Project Link: [Project Repo][(https://github.com/manmathbh/expense_tracker)
 
 ---
