@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Project Banner](https://i.imgur.com/your-project-image.png)
+![Project Banner](./assets/uiscreenshot.png)
 </div>
 
 A full-stack web application designed to help users manage their finances by tracking expenses. Built with Node.js, Express, MongoDB, and a vanilla JavaScript frontend.
