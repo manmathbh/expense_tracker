@@ -88,6 +88,15 @@ router.get('/', auth, async (req, res) => {
 // @route   POST api/expenses
 router.post('/', auth, async (req, res) => {
     const { category, amount, comments } = req.body;
+    
+    // Input validation to prevent invalid data
+    if (!category || !amount) {
+        return res.status(400).json({ msg: 'Category and amount are required' });
+    }
+    if (typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ msg: 'Amount must be a positive number' });
+    }
+    
     try {
         const newExpense = new Expense({
             user: req.user.id,
@@ -106,15 +115,29 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/expenses/:id
 router.put('/:id', auth, async (req, res) => {
     const { category, amount, comments } = req.body;
+    
+    // Input validation
+    if (!category || !amount) {
+        return res.status(400).json({ msg: 'Category and amount are required' });
+    }
+    if (typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ msg: 'Amount must be a positive number' });
+    }
+    
     const expenseFields = { category, amount, comments };
 
     try {
-        let expense = await Expense.findById(req.params.id);
-        if (!expense) return res.status(404).json({ msg: 'Expense not found' });
-        if (expense.user.toString() !== req.user.id) {
-            return res.status(401).json({ msg: 'Not authorized' });
+        // Optimized: single query with user check, avoiding redundant findById
+        const expense = await Expense.findOneAndUpdate(
+            { _id: req.params.id, user: req.user.id }, // Check ownership in query
+            { $set: expenseFields },
+            { new: true, runValidators: true }
+        );
+        
+        if (!expense) {
+            return res.status(404).json({ msg: 'Expense not found or not authorized' });
         }
-        expense = await Expense.findByIdAndUpdate(req.params.id, { $set: expenseFields }, { new: true });
+        
         res.json(expense);
     } catch (err) {
         console.error(err.message);
@@ -125,12 +148,16 @@ router.put('/:id', auth, async (req, res) => {
 // @route   DELETE api/expenses/:id
 router.delete('/:id', auth, async (req, res) => {
     try {
-        let expense = await Expense.findById(req.params.id);
-        if (!expense) return res.status(404).json({ msg: 'Expense not found' });
-        if (expense.user.toString() !== req.user.id) {
-            return res.status(401).json({ msg: 'Not authorized' });
+        // Optimized: single query with user check, avoiding redundant findById
+        const expense = await Expense.findOneAndDelete({
+            _id: req.params.id,
+            user: req.user.id // Check ownership in query
+        });
+        
+        if (!expense) {
+            return res.status(404).json({ msg: 'Expense not found or not authorized' });
         }
-        await Expense.findByIdAndDelete(req.params.id);
+        
         res.json({ msg: 'Expense removed' });
     } catch (err) {
         console.error(err.message);

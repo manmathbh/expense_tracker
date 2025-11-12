@@ -6,6 +6,8 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true }
 });
 
+// Index on username for faster login/registration checks (unique creates index automatically)
+
 // Hash password before saving the user model
 UserSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {

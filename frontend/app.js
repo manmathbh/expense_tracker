@@ -237,6 +237,7 @@
 const API_URL = 'https://expense-tracker-2b7x.onrender.com/api'; // Your Render URL
 let expenseChart;
 let currentExpenses = [];
+let isSubmitting = false; // Flag to prevent duplicate submissions
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- NEW, MORE ROBUST ROUTING LOGIC ---
@@ -334,6 +335,10 @@ async function fetchExpenses() {
 function displayExpenses(expenses) {
     const tableBody = document.getElementById('expense-table-body');
     tableBody.innerHTML = '';
+    
+    // Use DocumentFragment for efficient DOM manipulation
+    const fragment = document.createDocumentFragment();
+    
     expenses.forEach(expense => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -347,12 +352,22 @@ function displayExpenses(expenses) {
                 <button class="action-btn delete-btn" onclick="deleteExpense('${expense._id}')">Delete</button>
             </td>
         `;
-        tableBody.appendChild(row);
+        fragment.appendChild(row);
     });
+    
+    // Single DOM operation instead of multiple appendChild calls
+    tableBody.appendChild(fragment);
 }
 
 async function handleExpenseForm(e) {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+        return;
+    }
+    isSubmitting = true;
+    
     const token = localStorage.getItem('token');
     const id = document.getElementById('expense-id').value;
     const expenseData = {
@@ -363,6 +378,7 @@ async function handleExpenseForm(e) {
     const isEditing = !!id;
     const method = isEditing ? 'PUT' : 'POST';
     const url = isEditing ? `${API_URL}/expenses/${id}` : `${API_URL}/expenses`;
+    
     try {
         const res = await fetch(url, {
             method,
@@ -375,7 +391,11 @@ async function handleExpenseForm(e) {
         }
         resetForm();
         fetchExpenses();
-    } catch (err) { alert(`Error: ${err.message}`); }
+    } catch (err) { 
+        alert(`Error: ${err.message}`); 
+    } finally {
+        isSubmitting = false; // Reset flag
+    }
 }
 
 function populateFormForEdit(id, category, amount, comments) {
@@ -419,20 +439,27 @@ function renderPieChart(expenses) {
     }, {});
     const labels = Object.keys(categoryData);
     const data = Object.values(categoryData);
-    if (expenseChart) { expenseChart.destroy(); }
-    expenseChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Expenses by Category',
-                data: data,
-                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
-                hoverOffset: 4
-            }]
-        },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
+    
+    // Optimize: Update existing chart instead of destroying and recreating
+    if (expenseChart) {
+        expenseChart.data.labels = labels;
+        expenseChart.data.datasets[0].data = data;
+        expenseChart.update();
+    } else {
+        expenseChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Expenses by Category',
+                    data: data,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                    hoverOffset: 4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
 }
 
 // --- Download Functions (No changes here) ---
@@ -442,18 +469,29 @@ function downloadCSV() {
         return;
     }
     const headers = ['Category', 'Amount (₹)', 'Comments', 'Date'];
+    
+    // Optimized CSV generation with array join instead of string concatenation
     const rows = currentExpenses.map(e => 
         `"${e.category}","${e.amount.toFixed(2)}","${(e.comments || '').replace(/"/g, '""')}","${new Date(e.createdAt).toLocaleDateString()}"`
     );
-    const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + '\n' + rows.join('\n');
     
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [
+        headers.join(','),
+        ...rows
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute("href", url);
     link.setAttribute("download", "expenses.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
+    // Clean up the object URL
+    URL.revokeObjectURL(url);
 }
 
 function downloadPDF() {

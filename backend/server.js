@@ -15,10 +15,29 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json()); // Body parser for JSON
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected...'))
-    .catch(err => console.error(err));
+// Connect to MongoDB with connection pooling and better error handling
+const mongooseOptions = {
+    maxPoolSize: 10, // Maximum number of connections in the pool
+    minPoolSize: 5,  // Minimum number of connections in the pool
+    socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+    serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
+};
+
+mongoose.connect(process.env.MONGO_URI, mongooseOptions)
+    .then(() => console.log('MongoDB Connected with connection pooling...'))
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Exit if cannot connect to database
+    });
+
+// Handle MongoDB connection errors after initial connection
+mongoose.connection.on('error', (err) => {
+    console.error('MongoDB runtime error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.warn('MongoDB disconnected. Attempting to reconnect...');
+});
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));

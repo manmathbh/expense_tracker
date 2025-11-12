@@ -60,6 +60,18 @@ const router = express.Router();
 // @desc    Register a user
 router.post('/register', async (req, res) => {
     const { username, password } = req.body;
+    
+    // Input validation to prevent unnecessary DB queries
+    if (!username || !password) {
+        return res.status(400).json({ msg: 'Please provide username and password' });
+    }
+    if (username.length < 3) {
+        return res.status(400).json({ msg: 'Username must be at least 3 characters' });
+    }
+    if (password.length < 6) {
+        return res.status(400).json({ msg: 'Password must be at least 6 characters' });
+    }
+    
     try {
         let user = await User.findOne({ username });
         if (user) {
@@ -78,6 +90,12 @@ router.post('/register', async (req, res) => {
 // @desc    Authenticate user & get token
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
+    
+    // Input validation to prevent unnecessary DB queries
+    if (!username || !password) {
+        return res.status(400).json({ msg: 'Please provide username and password' });
+    }
+    
     try {
         const user = await User.findOne({ username });
         if (!user) {
@@ -90,10 +108,14 @@ router.post('/login', async (req, res) => {
         }
 
         const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
+        // Promisified jwt.sign for better async/await consistency
+        const token = await new Promise((resolve, reject) => {
+            jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
+                if (err) reject(err);
+                else resolve(token);
+            });
         });
+        res.json({ token });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ msg: 'Server error' }); // FIX: Send JSON on error
