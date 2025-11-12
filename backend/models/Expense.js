@@ -23,4 +23,10 @@ const ExpenseSchema = new mongoose.Schema({
     timestamps: true // Adds createdAt and updatedAt fields automatically
 });
 
+// Index on user field for faster queries - all expense queries filter by user
+ExpenseSchema.index({ user: 1 });
+
+// Compound index for common query pattern: user expenses sorted by creation date
+ExpenseSchema.index({ user: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Expense', ExpenseSchema);
